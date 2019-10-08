@@ -1,0 +1,31 @@
+version: '2'
+services:
+  app:
+    build: ./server
+    working_dir: /app_dev
+    entrypoint:
+      - npm
+    command:
+      - run
+      - dev
+    environment:
+      NODE_ENV: development
+      DB_HOST: postgres
+      DB_USER: postgres
+      DB_NAME: development
+
+    depends_on:
+      - postgres
+    ports:
+      - 3000:3000
+    volumes:
+      - ./server:/app_dev
+  postgres:
+    image: postgres:12
+    volumes:
+      - postgresDevelopment:/data/db
+    ports:
+      - '5432:5432'
+volumes:
+  postgresDevelopment:
+    external: true

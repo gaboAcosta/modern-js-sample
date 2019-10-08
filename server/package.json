@@ -1,0 +1,36 @@
+{
+  "name": "modern-js-sample-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "db:migrate": "sequelize db:migrate",
+    "test:functional": "NODE_ENV=test lab -v -I @@any-promise/REGISTRATION -P 'spec' test",
+    "test:functional:watch": "nodemon --exec \"npm run test:functional\"",
+    "test:unit": "lab -v -P 'spec' src",
+    "test:unit:watch": "nodemon --exec \"npm run test:unit\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@hapi/lab": "^20.4.0",
+    "nodemon": "^1.19.3",
+    "@hapi/code": "^6.0.0"
+  },
+  "dependencies": {
+    "@hapi/hapi": "^18.4.0",
+    "bcrypt": "^3.0.6",
+    "boom": "^7.3.0",
+    "glob": "^7.1.4",
+    "joi": "^14.3.1",
+    "mongoose": "^5.7.3",
+    "pg": "^7.12.1",
+    "pg-hstore": "^2.3.3",
+    "sequelize": "5.18.4",
+    "sequelize-cli": "^5.5.1",
+    "sinon": "^7.5.0"
+  }
+}
