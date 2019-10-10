@@ -1,30 +1,33 @@
 
+const Joi = require('joi')
 const Boom = require('boom')
 const UserServiceFactory = require('./user.service.factory')
-const { createUserSchema, responseUserSchema } = require('./user.schema')
+const { updateUserSchema, responseUserSchema } = require('./user.schema')
 
-const userCreateRoute = {
-  name: 'userCreateRoute',
+const userUpdateRoute = {
+  name: 'userUpdateRoute',
   version: '0.0.1',
   dependencies: ['PostgresPlugin'],
   register: function(server) {
     const factory = new UserServiceFactory(server)
     const service = factory.getService()
     server.route({
-      method: 'POST',
-      path: '/v1/users',
+      method: 'PUT',
+      path: '/v1/users/{id}',
       handler: async (request) => {
         const {
-          name,
-          email,
-          password
-        } = request.payload
-        return await service.create({ name, email, password })
+          params: { id },
+          payload
+        } = request
+        return await service.update(id, payload)
       },
       config: {
         tags: ['api'],
         validate: {
-          payload: createUserSchema
+          params: {
+            id: Joi.number().required()
+          },
+          payload: updateUserSchema
         },
         response: {
           modify: true,
@@ -38,4 +41,4 @@ const userCreateRoute = {
   }
 }
 
-module.exports = userCreateRoute
+module.exports = userUpdateRoute

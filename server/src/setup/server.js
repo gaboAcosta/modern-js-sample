@@ -1,17 +1,31 @@
 const Hapi = require('@hapi/hapi')
+const Inert = require('@hapi/inert')
+const Vision = require('@hapi/vision')
+const HapiSwaggerPlugin = require('./swagger')
 const { getRoutes } = require('./routes')
 require('./db')
 
 const server = Hapi.server({
   port: 3000,
-  host: 'localhost'
+  host: '0.0.0.0'
 })
 
 async function loadPlugins(server) {
   const routes = getRoutes()
   const appPlugins = [
+    {
+      plugin: require('hapi-pino'),
+      options: {
+        level: 'info',
+        logEvents: false
+      }
+    },
+    Inert,
+    Vision,
+    HapiSwaggerPlugin,
     require('./app.config'),
-    require('./db')
+    require('./db'),
+    require('./errorHandler')
   ]
   await server.register(appPlugins.concat(routes))
 }

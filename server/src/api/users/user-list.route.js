@@ -1,41 +1,33 @@
 
 const Boom = require('boom')
 const UserServiceFactory = require('./user.service.factory')
-const { createUserSchema, responseUserSchema } = require('./user.schema')
+const { userListSchema } = require('./user.schema')
 
-const userCreateRoute = {
-  name: 'userCreateRoute',
+const userList = {
+  name: 'userList',
   version: '0.0.1',
   dependencies: ['PostgresPlugin'],
   register: function(server) {
     const factory = new UserServiceFactory(server)
     const service = factory.getService()
     server.route({
-      method: 'POST',
+      method: 'GET',
       path: '/v1/users',
       handler: async (request) => {
-        const {
-          name,
-          email,
-          password
-        } = request.payload
-        return await service.create({ name, email, password })
+        return await service.list()
       },
       config: {
         tags: ['api'],
-        validate: {
-          payload: createUserSchema
-        },
         response: {
           modify: true,
           options: {
             stripUnknown: true,
           },
-          schema: responseUserSchema
+          schema: userListSchema
         },
       },
     })
   }
 }
 
-module.exports = userCreateRoute
+module.exports = userList

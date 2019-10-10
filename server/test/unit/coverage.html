@@ -1,0 +1,1967 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Tests &amp; Coverage</title>
+    <script>
+      headings = [];
+    
+      onload = function () {
+          headings = document.querySelectorAll('h2');
+          reset();
+      };
+    
+      onscroll = function (e) {
+          var heading = find(window.scrollY);
+          if (!heading) {
+            var current = document.querySelector('#menu a.active');
+            if (current) {
+              current.className = '';
+            }
+            return;
+          }
+          var links = document.querySelectorAll('#menu a')
+                  , link;
+    
+          for (var i = 0, len = links.length; i < len; ++i) {
+              link = links[i];
+              link.className = link.getAttribute('href') == '#' + heading.id ? 'active' : '';
+          }
+      };
+    
+      function find (y) {
+          var i = headings.length
+                  , heading;
+    
+          while (i--) {
+              heading = headings[i];
+              if (y >= heading.offsetTop) {
+                  return heading;
+              }
+          }
+      }
+    
+      function toggle (className) {
+    
+          var elements = document.getElementsByClassName(className);
+    
+          for (var i = 0, il = elements.length; i < il; ++i) {
+              var element = elements[i];
+    
+              if (element.classList.contains('hide')) {
+                  element.classList.remove('hide');
+                  element.classList.add('show');
+              }
+              else {
+                  element.classList.remove('show');
+                  element.classList.add('hide');
+              }
+          };
+      }
+    
+      function reset () {
+    
+          var shownElements = document.getElementsByClassName('show');
+          var filterElements = document.querySelectorAll('input[type=checkbox]');
+    
+          for (var i = 0, il = filterElements.length; i < il; ++i) {
+              filterElements[i].checked = false;
+          }
+    
+          // Check any filters with visible elements
+          for (i = 0, il = shownElements.length; i < il; ++i) {
+              var shownElement = shownElements[i];
+              var classNames = shownElement.className.split(' ');
+              for (var ci = 0, cl = classNames.length; ci < cl; ++ci){
+                  var element = document.getElementById('show-' + classNames[ci]);
+                  if (element) {
+                      element.checked = true;
+                  }
+              }
+          }
+      };
+    
+      function filter (element) {
+    
+          toggle(element.value);
+          reset();
+      }
+    </script>
+    <style>
+        body {
+            font: 14px/1.6 Helvetica, Arial, sans-serif;
+            margin: 0;
+            color: #2c2c2c;
+        }
+    
+        #tests, #coverage, #linting {
+            padding: 60px;
+        }
+    
+        h1 a:hover {
+            text-decoration: none;
+        }
+    
+        a[href^="#"],
+        a[href^="#"]:visited {
+            color: inherit;
+            text-decoration: none;
+        }
+    
+        h2 {
+            width: 80%;
+            margin-top: 80px;
+            margin-bottom: 0;
+            font-weight: 100;
+            letter-spacing: 1px;
+        }
+    
+        ul {
+            margin-top: 20px;
+            padding: 0 15px;
+            width: 100%;
+        }
+    
+        ul li {
+            float: left;
+            width: 40%;
+            margin-top: 5px;
+            margin-right: 60px;
+            list-style: none;
+            padding: 5px 0;
+            font-size: 12px;
+        }
+    
+        #menu {
+            position: fixed;
+            font-size: 12px;
+            overflow-y: auto;
+            top: 0;
+            right: 0;
+            margin: 0;
+            height: 100%;
+            padding: 15px 15px;
+            border-left: 1px solid #eee;
+            background-color: #666;
+            z-index: 1;
+        }
+    
+        #menu::after {
+            display: block;
+            content: '';
+            padding-top: 80px;
+        }
+    
+        #menu li a {
+            display: block;
+            color: white;
+            padding: 0 5px 0 35px;
+            transition: background 300ms;
+            text-decoration: none;
+        }
+    
+        #menu li {
+            position: relative;
+            list-style: none;
+        }
+    
+        #menu a:hover,
+        #menu a.active {
+            text-decoration: none;
+            background: rgba(255, 255, 255, .4);
+        }
+    
+        #menu li:hover .cov {
+            opacity: 1;
+        }
+    
+        #menu li .dirname {
+            opacity: .60;
+            padding-right: 2px;
+        }
+    
+        #menu li .basename {
+            opacity: 1;
+        }
+    
+        #menu .cov, #menu .lint {
+            background: rgba(0, 0, 0, .3);
+            position: absolute;
+            top: 0;
+            font-size: 9px;
+            text-align: center;
+            opacity: .8;
+            width: 22px;
+            border-radius: 10px;
+            padding: 2px 3px;
+        }
+    
+        #files .stats:nth-child(2n):not(.hide) {
+            display: inline-block;
+            margin-top: 15px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    
+        .stats div {
+            float: left;
+            padding: 0 5px;
+        }
+    
+        .stats::after {
+            display: block;
+            content: '';
+            clear: both;
+        }
+    
+        .stats .sloc::after {
+            content: ' SLOC';
+            color: #b6b6b6;
+        }
+    
+        .stats .percentage::after {
+            content: ' coverage';
+            color: #b6b6b6;
+        }
+    
+        .stats .hits::before {
+            content: '(';
+            color: #b6b6b6;
+        }
+    
+        .stats .hits::after {
+            content: ' Covered';
+            color: #b6b6b6;
+        }
+    
+        .stats .misses::after {
+            content: ' Not Covered)';
+            color: #b6b6b6;
+        }
+    
+        .stats .failures::after {
+            content: ' Failures';
+            color: #b6b6b6;
+        }
+    
+        .stats .skipped::after {
+            content: ' Skipped';
+            color: #b6b6b6;
+        }
+    
+        .stats .test-count::after {
+            content: ' Tests';
+            color: #b6b6b6;
+        }
+    
+        .stats .duration::before {
+            content: '(';
+            color: #b6b6b6;
+        }
+    
+        .stats .duration::after {
+            content: ' ms)';
+            color: #b6b6b6;
+        }
+    
+        .high {
+            color: #00d4b4;
+        }
+    
+        .medium {
+            color: #e87d0d;
+        }
+    
+        .low {
+            color: #d4081a;
+        }
+    
+        .terrible {
+            color: #d4081a;
+            font-weight: bold;
+        }
+    
+        #files table {
+            width: 80%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            border: 1px solid #cbcbcb;
+            color: #363636;
+            border-radius: 3px;
+        }
+    
+        #files thead {
+            display: none;
+        }
+    
+        table td.line,
+        table td.lint,
+        table td.hits,
+        table td.original-line {
+            width: 20px;
+            background: #eaeaea;
+            text-align: right;
+            font-size: 11px;
+            padding: 0 10px;
+            color: #949494;
+            white-space: nowrap;
+        }
+    
+        table td.hits {
+            width: 10px;
+            padding: 2px 5px;
+            color: rgba(0, 0, 0, .2);
+            background: #f0f0f0;
+        }
+    
+        table td.lint.empty {
+            width: 0;
+            padding: 0;
+        }
+    
+        table td.lint > span {
+            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+            display: inline-block;
+            vertical-align: baseline;
+        }
+    
+        table td.lint .errors {
+            background-color: red;
+        }
+    
+        table td.lint .warnings {
+            background-color: orange;
+        }
+    
+        tr.miss td.line,
+        tr.miss td.hits {
+            background: #e6c3c7;
+        }
+    
+        tr.miss td {
+            background: #f8d5d8;
+        }
+    
+        td.source {
+            padding-left: 15px;
+            line-height: 15px;
+            white-space: pre;
+            font: 12px monaco, monospace;
+        }
+    
+        td.source div {
+            display: inline-block;
+        }
+    
+        td.source div.true {
+            background: #bae8bf;
+        }
+    
+        td.source div.false {
+            background: #e8e5ba;
+        }
+    
+        td.source div.never {
+            background: #f8d5d8;
+        }
+    
+        #tests table {
+            width: 80%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            border: 1px solid #cbcbcb;
+            color: #363636;
+            border-radius: 3px;
+        }
+    
+        #tests thead {
+            background: #F5F5F5;
+        }
+    
+        #tests tr {
+            border: 1px solid #ccc;
+        }
+    
+        #tests td {
+            padding-left: 8px;
+            vertical-align: top;
+        }
+    
+        #tests .success:nth-child(2n) {
+            background: #F5F5F5;
+        }
+    
+        #tests .failure {
+            background: #FF9E9E;
+        }
+    
+        #tests table .skipped {
+            background: #AA82FF;
+        }
+    
+        #tests .success {
+            color: #949494;
+        }
+    
+        #tests .failure .test-title {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    
+        #tests .stack {
+            margin-top: 4px;
+            padding-left: 15px;
+            margin-bottom: 12px;
+            font: 12px monaco, monospace;
+            white-space: pre;
+            line-height: 15px;
+        }
+    
+        .hide {
+            display: none;
+        }
+    
+        .show {
+            display: inherit;
+        }
+    
+        #tests table .show {
+            display: table-row;
+        }
+    
+        [data-tooltip] {
+            position: relative;
+        }
+    
+        [data-tooltip]:hover:before {
+            border: solid;
+            border-color: #333 transparent;
+            border-width: 6px 6px 0 6px;
+            bottom: 20px;
+            content: "";
+            left: 0;
+            position: absolute;
+            z-index: 99;
+        }
+    
+        [data-tooltip]:hover:after {
+            background: #333;
+            background: rgba(0, 0, 0, .8);
+            border-radius: 5px;
+            bottom: 26px;
+            color: #fff;
+            left: -10px;
+            padding: 5px 15px;
+            position: absolute;
+            z-index: 98;
+            content: attr(data-tooltip);
+            white-space: pre;
+            text-align: left;
+        }
+    
+        .line[data-tooltip]:hover:after {
+            content: "Line number";
+        }
+    
+        .hits[data-tooltip]:hover:after {
+            content: "Number of hits";
+        }
+    
+        .miss .source[data-tooltip]:hover:after {
+            content: "Missed line";
+        }
+    
+        .miss.true[data-tooltip]:hover:after {
+            content: "Condition always true";
+        }
+    
+        .miss.false[data-tooltip]:hover:after {
+            content: "Condition always false";
+        }
+    
+        .miss.never[data-tooltip]:hover:after {
+            content: "Statement never reached";
+        }
+    
+        .lint .errors[data-tooltip]:hover:after {
+            content: "Linting errors:\A" attr(data-tooltip);
+        }
+    
+        .lint .warnings[data-tooltip]:hover:after {
+            content: "Linting warnings:\A" attr(data-tooltip);
+        }
+    
+        .original-line[data-tooltip]:hover:after {
+            content: "Original line in file " attr(data-tooltip);
+        }
+    
+        #filters {
+            width: 75%;
+            margin-top: 25px;
+        }
+    
+        #filters label {
+            margin-right: 10px;
+        }
+    
+        .lint-stats .lint-errors::after {
+            content: ' linting errors';
+            color: #b6b6b6;
+        }
+    
+        .lint-stats .lint-warnings::after {
+            content: ' linting warnings';
+            color: #b6b6b6;
+        }
+    
+        .lint-entry {
+            color: #b6b6b6;
+            float: none;
+            padding: 0;
+        }
+    
+        .lint-entry .level-ERROR {
+            color: #d4081a;
+        }
+    
+        .lint-entry .level-WARNING {
+            color: #e87d0d;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="menu">
+        <li><a href="#tests">Test Report</a></li>
+        <li><a href="#coverage">Coverage Report</a></li>
+        <li class="">
+            <span class="cov high">100</span>
+            <a href="#src/api/users/user.service.js"><span class="dirname">src/api/users/</span><span class="basename">user.service.js</span></a>
+        </li>
+        <li class="">
+            <span class="cov high">100</span>
+            <a href="#src/api/users/user.service.spec.js"><span class="dirname">src/api/users/</span><span class="basename">user.service.spec.js</span></a>
+        </li>
+        <li><a href="#linting">Linting Report</a></li>
+    </div>
+    <div id="tests">
+      <h1>Test Report</h1>
+      <div class="stats high">
+          <div class="failures">0</div>
+          <div class="skipped">0</div>
+          <div class="test-count">8</div>
+          <div class="duration">41</div>
+      </div>
+      <div id="filters">
+          <input type="checkbox" checked="" onchange="filter(this)" value="success" id="show-success">
+          <label for="show-success">Show Success</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="failure" id="show-failure">
+          <label for="show-failure">Show Failure</label>
+          <br>
+          <input type="checkbox" checked="" onchange="filter(this)" value="UserService" id="show-UserService">
+          <label for="show-UserService">UserService</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="constructor" id="show-constructor">
+          <label for="show-constructor">constructor</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="create" id="show-create">
+          <label for="show-create">create</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="get" id="show-get">
+          <label for="show-get">get</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="list" id="show-list">
+          <label for="show-list">list</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="update" id="show-update">
+          <label for="show-update">update</label>
+          <input type="checkbox" checked="" onchange="filter(this)" value="delete" id="show-delete">
+          <label for="show-delete">delete</label>
+      </div>
+      <table>
+          <thead>
+          <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Duration (ms)</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr class="show UserService constructor success">
+              <td class="test-id">1</td>
+              <td class="test-title">UserService constructor Should throw an error if no user model is found
+                  
+              </td>
+              <td class="test-duration">3</td>
+          </tr>
+          <tr class="show UserService create success">
+              <td class="test-id">2</td>
+              <td class="test-title">UserService create Should create a user with the given params
+                  
+              </td>
+              <td class="test-duration">13</td>
+          </tr>
+          <tr class="show UserService create success">
+              <td class="test-id">3</td>
+              <td class="test-title">UserService create Should return the actual model if raw is set to false
+                  
+              </td>
+              <td class="test-duration">3</td>
+          </tr>
+          <tr class="show UserService get success">
+              <td class="test-id">4</td>
+              <td class="test-title">UserService get Should be able to get an user with a query object
+                  
+              </td>
+              <td class="test-duration">3</td>
+          </tr>
+          <tr class="show UserService get success">
+              <td class="test-id">5</td>
+              <td class="test-title">UserService get Should throw a Boom.notFound error if no user is returned
+                  
+              </td>
+              <td class="test-duration">3</td>
+          </tr>
+          <tr class="show UserService list success">
+              <td class="test-id">6</td>
+              <td class="test-title">UserService list should call the findAll with raw params
+                  
+              </td>
+              <td class="test-duration">2</td>
+          </tr>
+          <tr class="show UserService update success">
+              <td class="test-id">7</td>
+              <td class="test-title">UserService update Should call update with an ID and a payload to update
+                  
+              </td>
+              <td class="test-duration">3</td>
+          </tr>
+          <tr class="show UserService delete success">
+              <td class="test-id">8</td>
+              <td class="test-title">UserService delete should call destroy in the user model using a query
+                  
+              </td>
+              <td class="test-duration">2</td>
+          </tr>
+          </tbody>
+      </table>
+    
+    </div>    <div id="coverage">
+        <h1>Code Coverage Report</h1>
+        <div class="stats high">
+            <div class="percentage">100%</div>
+            <div class="sloc">203</div>
+            <div class="hits">203</div>
+            <div class="misses">0</div>
+        </div>
+        <div id="filters">
+          <input type="checkbox" checked="" onchange="filter(this)" value="generated" id="show-generated">
+          <label for="show-generated">Show generated files</label>
+        </div>
+        <div id="files">
+            <div class="file ">
+                <h2 id="src/api/users/user.service.js">src/api/users/user.service.js </h2>
+                <div class="stats high">
+                    <div class="percentage">100%</div>
+                    <div class="sloc">29</div>
+                    <div class="hits">29</div>
+                    <div class="misses">0</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Lint</th>
+                            <th>Hits</th>
+                            <th>Source</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="src/api/users/user.service.js__1" class="hit">
+                          <td class="line" data-tooltip>1</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__2" class="hit">
+                          <td class="line" data-tooltip>2</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Boom &#x3D; require(&#x27;boom&#x27;)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__3" class="hit">
+                          <td class="line" data-tooltip>3</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__4" class="hit">
+                          <td class="line" data-tooltip>4</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">class UserService {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__5" class="hit">
+                          <td class="line" data-tooltip>5</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  constructor(userModel){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__6" class="hit">
+                          <td class="line" data-tooltip>6</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    if(!userModel) throw &#x27;Missing User Model&#x27;</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__7" class="hit">
+                          <td class="line" data-tooltip>7</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>7</td>
+                          <td class="source">    this.userModel &#x3D; userModel</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__8" class="hit">
+                          <td class="line" data-tooltip>8</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__9" class="hit">
+                          <td class="line" data-tooltip>9</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  async create(userData, raw&#x3D;true){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__10" class="hit">
+                          <td class="line" data-tooltip>10</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    const user &#x3D; await this.userModel.create(userData)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__11" class="hit">
+                          <td class="line" data-tooltip>11</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">    return raw ? user.dataValues : user</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__12" class="hit">
+                          <td class="line" data-tooltip>12</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__13" class="hit">
+                          <td class="line" data-tooltip>13</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  async get(where&#x3D;{}, raw&#x3D;true){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__14" class="hit">
+                          <td class="line" data-tooltip>14</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    const user &#x3D; await this.userModel.findOne({ where, raw })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__15" class="hit">
+                          <td class="line" data-tooltip>15</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>4</td>
+                          <td class="source">    if(!user) throw Boom.notFound(&#x27;User not found&#x27;)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__16" class="hit">
+                          <td class="line" data-tooltip>16</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>2</td>
+                          <td class="source">    return user</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__17" class="hit">
+                          <td class="line" data-tooltip>17</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__18" class="hit">
+                          <td class="line" data-tooltip>18</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  list(raw&#x3D;true){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__19" class="hit">
+                          <td class="line" data-tooltip>19</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    return this.userModel.findAll({ raw })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__20" class="hit">
+                          <td class="line" data-tooltip>20</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__21" class="hit">
+                          <td class="line" data-tooltip>21</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  async update(id, payload){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__22" class="hit">
+                          <td class="line" data-tooltip>22</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    const user &#x3D; await this.get({ id }, false)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__23" class="hit">
+                          <td class="line" data-tooltip>23</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__24" class="hit">
+                          <td class="line" data-tooltip>24</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    await user.update(payload)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__25" class="hit">
+                          <td class="line" data-tooltip>25</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    return user.toJSON()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__26" class="hit">
+                          <td class="line" data-tooltip>26</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__27" class="hit">
+                          <td class="line" data-tooltip>27</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  async delete (where) {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__28" class="hit">
+                          <td class="line" data-tooltip>28</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    const result &#x3D; await this.userModel.destroy({ where })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__29" class="hit">
+                          <td class="line" data-tooltip>29</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    return result</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__30" class="hit">
+                          <td class="line" data-tooltip>30</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__31" class="hit">
+                          <td class="line" data-tooltip>31</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__32" class="hit">
+                          <td class="line" data-tooltip>32</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">}</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__33" class="hit">
+                          <td class="line" data-tooltip>33</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.js__34" class="hit">
+                          <td class="line" data-tooltip>34</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">module.exports &#x3D; UserService</td>
+                          
+                        </tr>        </tbody>
+                </table>
+            </div>
+            <div class="file ">
+                <h2 id="src/api/users/user.service.spec.js">src/api/users/user.service.spec.js </h2>
+                <div class="stats high">
+                    <div class="percentage">100%</div>
+                    <div class="sloc">174</div>
+                    <div class="hits">174</div>
+                    <div class="misses">0</div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Lint</th>
+                            <th>Hits</th>
+                            <th>Source</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="src/api/users/user.service.spec.js__1" class="hit">
+                          <td class="line" data-tooltip>1</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__2" class="hit">
+                          <td class="line" data-tooltip>2</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const sinon &#x3D; require(&#x27;sinon&#x27;)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__3" class="hit">
+                          <td class="line" data-tooltip>3</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const UserService &#x3D; require(&#x27;./user.service&#x27;)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__4" class="hit">
+                          <td class="line" data-tooltip>4</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const Lab &#x3D; require(&#x27;@hapi/lab&#x27;)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__5" class="hit">
+                          <td class="line" data-tooltip>5</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const { describe, it } &#x3D; exports.lab &#x3D; Lab.script();</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__6" class="hit">
+                          <td class="line" data-tooltip>6</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">const { expect } &#x3D; require(&#x27;@hapi/code&#x27;)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__7" class="hit">
+                          <td class="line" data-tooltip>7</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source"></td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__8" class="hit">
+                          <td class="line" data-tooltip>8</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">describe(&#x27;UserService&#x27;, () &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__9" class="hit">
+                          <td class="line" data-tooltip>9</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  describe(&#x27;constructor&#x27;, function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__10" class="hit">
+                          <td class="line" data-tooltip>10</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    it(&#x27;Should throw an error if no user model is found&#x27;, function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__11" class="hit">
+                          <td class="line" data-tooltip>11</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      try {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__12" class="hit">
+                          <td class="line" data-tooltip>12</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        const SUT &#x3D; new UserService()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__13" class="hit">
+                          <td class="line" data-tooltip>13</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      } catch (ex) {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__14" class="hit">
+                          <td class="line" data-tooltip>14</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        expect(ex).to.exist()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__15" class="hit">
+                          <td class="line" data-tooltip>15</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__16" class="hit">
+                          <td class="line" data-tooltip>16</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__17" class="hit">
+                          <td class="line" data-tooltip>17</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__18" class="hit">
+                          <td class="line" data-tooltip>18</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">  describe(&#x27;create&#x27;, function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__19" class="hit">
+                          <td class="line" data-tooltip>19</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    it(&#x27;Should create a user with the given params&#x27;, async () &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__20" class="hit">
+                          <td class="line" data-tooltip>20</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      const userModelStub &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__21" class="hit">
+                          <td class="line" data-tooltip>21</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        create: sinon.stub()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__22" class="hit">
+                          <td class="line" data-tooltip>22</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__23" class="hit">
+                          <td class="line" data-tooltip>23</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockUserToCreate &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__24" class="hit">
+                          <td class="line" data-tooltip>24</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        name: &#x27;Name&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__25" class="hit">
+                          <td class="line" data-tooltip>25</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        email: &#x27;e@mail.com&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__26" class="hit">
+                          <td class="line" data-tooltip>26</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        password: &#x27;asd&#x27;</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__27" class="hit">
+                          <td class="line" data-tooltip>27</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__28" class="hit">
+                          <td class="line" data-tooltip>28</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockUserCreated &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__29" class="hit">
+                          <td class="line" data-tooltip>29</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        dataValues: {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__30" class="hit">
+                          <td class="line" data-tooltip>30</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          id: 1,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__31" class="hit">
+                          <td class="line" data-tooltip>31</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          ...mockUserToCreate</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__32" class="hit">
+                          <td class="line" data-tooltip>32</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__33" class="hit">
+                          <td class="line" data-tooltip>33</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__34" class="hit">
+                          <td class="line" data-tooltip>34</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      userModelStub.create.returns(mockUserCreated)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__35" class="hit">
+                          <td class="line" data-tooltip>35</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const SUT &#x3D; new UserService(userModelStub)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__36" class="hit">
+                          <td class="line" data-tooltip>36</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const createdUser &#x3D; await SUT.create(mockUserToCreate)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__37" class="hit">
+                          <td class="line" data-tooltip>37</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(userModelStub.create.calledWith(mockUserToCreate)).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__38" class="hit">
+                          <td class="line" data-tooltip>38</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(createdUser).to.not.equal(mockUserCreated)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__39" class="hit">
+                          <td class="line" data-tooltip>39</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__40" class="hit">
+                          <td class="line" data-tooltip>40</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    it(&#x27;Should return the actual model if raw is set to false&#x27;, async () &#x3D;&gt; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__41" class="hit">
+                          <td class="line" data-tooltip>41</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      const userModelStub &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__42" class="hit">
+                          <td class="line" data-tooltip>42</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        create: sinon.stub()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__43" class="hit">
+                          <td class="line" data-tooltip>43</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__44" class="hit">
+                          <td class="line" data-tooltip>44</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockUserToCreate &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__45" class="hit">
+                          <td class="line" data-tooltip>45</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        name: &#x27;Name&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__46" class="hit">
+                          <td class="line" data-tooltip>46</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        email: &#x27;e@mail.com&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__47" class="hit">
+                          <td class="line" data-tooltip>47</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        password: &#x27;asd&#x27;</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__48" class="hit">
+                          <td class="line" data-tooltip>48</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__49" class="hit">
+                          <td class="line" data-tooltip>49</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockUserCreated &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__50" class="hit">
+                          <td class="line" data-tooltip>50</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        dataValues: {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__51" class="hit">
+                          <td class="line" data-tooltip>51</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          id: 1,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__52" class="hit">
+                          <td class="line" data-tooltip>52</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">          ...mockUserToCreate</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__53" class="hit">
+                          <td class="line" data-tooltip>53</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__54" class="hit">
+                          <td class="line" data-tooltip>54</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__55" class="hit">
+                          <td class="line" data-tooltip>55</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      userModelStub.create.returns(mockUserCreated)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__56" class="hit">
+                          <td class="line" data-tooltip>56</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const SUT &#x3D; new UserService(userModelStub)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__57" class="hit">
+                          <td class="line" data-tooltip>57</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const createdUser &#x3D; await SUT.create(mockUserToCreate, false)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__58" class="hit">
+                          <td class="line" data-tooltip>58</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(userModelStub.create.calledWith(mockUserToCreate)).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__59" class="hit">
+                          <td class="line" data-tooltip>59</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(createdUser).to.equal(mockUserCreated)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__60" class="hit">
+                          <td class="line" data-tooltip>60</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__61" class="hit">
+                          <td class="line" data-tooltip>61</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__62" class="hit">
+                          <td class="line" data-tooltip>62</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">  describe(&#x27;get&#x27;, function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__63" class="hit">
+                          <td class="line" data-tooltip>63</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    it(&#x27;Should be able to get an user with a query object&#x27;, async function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__64" class="hit">
+                          <td class="line" data-tooltip>64</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      const userModelStub &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__65" class="hit">
+                          <td class="line" data-tooltip>65</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        findOne: sinon.stub()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__66" class="hit">
+                          <td class="line" data-tooltip>66</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__67" class="hit">
+                          <td class="line" data-tooltip>67</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockUserToGet &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__68" class="hit">
+                          <td class="line" data-tooltip>68</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        id: 1,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__69" class="hit">
+                          <td class="line" data-tooltip>69</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        name: &#x27;Name&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__70" class="hit">
+                          <td class="line" data-tooltip>70</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        email: &#x27;e@mail.com&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__71" class="hit">
+                          <td class="line" data-tooltip>71</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        password: &#x27;asd&#x27;</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__72" class="hit">
+                          <td class="line" data-tooltip>72</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__73" class="hit">
+                          <td class="line" data-tooltip>73</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockQueryObject &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__74" class="hit">
+                          <td class="line" data-tooltip>74</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        id: 1</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__75" class="hit">
+                          <td class="line" data-tooltip>75</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__76" class="hit">
+                          <td class="line" data-tooltip>76</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const raw &#x3D; false</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__77" class="hit">
+                          <td class="line" data-tooltip>77</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      userModelStub.findOne.returns(mockUserToGet)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__78" class="hit">
+                          <td class="line" data-tooltip>78</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const SUT &#x3D; new UserService(userModelStub)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__79" class="hit">
+                          <td class="line" data-tooltip>79</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const foundUser &#x3D; await SUT.get(mockQueryObject, raw)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__80" class="hit">
+                          <td class="line" data-tooltip>80</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(userModelStub.findOne.calledWith({ where: mockQueryObject, raw })).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__81" class="hit">
+                          <td class="line" data-tooltip>81</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(foundUser).to.equal(mockUserToGet)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__82" class="hit">
+                          <td class="line" data-tooltip>82</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__83" class="hit">
+                          <td class="line" data-tooltip>83</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">    it(&#x27;Should throw a Boom.notFound error if no user is returned&#x27;, async function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__84" class="hit">
+                          <td class="line" data-tooltip>84</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      const userModelStub &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__85" class="hit">
+                          <td class="line" data-tooltip>85</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        findOne: sinon.stub()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__86" class="hit">
+                          <td class="line" data-tooltip>86</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__87" class="hit">
+                          <td class="line" data-tooltip>87</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockQueryObject &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__88" class="hit">
+                          <td class="line" data-tooltip>88</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        id: 1</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__89" class="hit">
+                          <td class="line" data-tooltip>89</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__90" class="hit">
+                          <td class="line" data-tooltip>90</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const raw &#x3D; false</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__91" class="hit">
+                          <td class="line" data-tooltip>91</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      userModelStub.findOne.returns(undefined)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__92" class="hit">
+                          <td class="line" data-tooltip>92</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const SUT &#x3D; new UserService(userModelStub)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__93" class="hit">
+                          <td class="line" data-tooltip>93</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      let error</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__94" class="hit">
+                          <td class="line" data-tooltip>94</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      try {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__95" class="hit">
+                          <td class="line" data-tooltip>95</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        const foundUser &#x3D; await SUT.get(mockQueryObject, raw)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__96" class="hit">
+                          <td class="line" data-tooltip>96</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      } catch (ex) {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__97" class="hit">
+                          <td class="line" data-tooltip>97</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">        error &#x3D; ex</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__98" class="hit">
+                          <td class="line" data-tooltip>98</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__99" class="hit">
+                          <td class="line" data-tooltip>99</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const { output: { statusCode }} &#x3D; error</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__100" class="hit">
+                          <td class="line" data-tooltip>100</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(userModelStub.findOne.calledWith({ where: mockQueryObject, raw })).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__101" class="hit">
+                          <td class="line" data-tooltip>101</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(error).to.not.equal(undefined)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__102" class="hit">
+                          <td class="line" data-tooltip>102</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(error.isBoom).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__103" class="hit">
+                          <td class="line" data-tooltip>103</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(statusCode).to.equal(404)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__104" class="hit">
+                          <td class="line" data-tooltip>104</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__105" class="hit">
+                          <td class="line" data-tooltip>105</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__106" class="hit">
+                          <td class="line" data-tooltip>106</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">  describe(&#x27;list&#x27;, function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__107" class="hit">
+                          <td class="line" data-tooltip>107</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    it(&#x27;should call the findAll with raw params&#x27;, async function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__108" class="hit">
+                          <td class="line" data-tooltip>108</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      const userModelStub &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__109" class="hit">
+                          <td class="line" data-tooltip>109</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        findAll: sinon.stub()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__110" class="hit">
+                          <td class="line" data-tooltip>110</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__111" class="hit">
+                          <td class="line" data-tooltip>111</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockUserToGet &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__112" class="hit">
+                          <td class="line" data-tooltip>112</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        id: 1,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__113" class="hit">
+                          <td class="line" data-tooltip>113</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        name: &#x27;Name&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__114" class="hit">
+                          <td class="line" data-tooltip>114</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        email: &#x27;e@mail.com&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__115" class="hit">
+                          <td class="line" data-tooltip>115</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        password: &#x27;asd&#x27;</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__116" class="hit">
+                          <td class="line" data-tooltip>116</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__117" class="hit">
+                          <td class="line" data-tooltip>117</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockQueryObject &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__118" class="hit">
+                          <td class="line" data-tooltip>118</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        id: 1</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__119" class="hit">
+                          <td class="line" data-tooltip>119</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__120" class="hit">
+                          <td class="line" data-tooltip>120</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const raw &#x3D; false</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__121" class="hit">
+                          <td class="line" data-tooltip>121</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      userModelStub.findAll.returns([mockUserToGet])</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__122" class="hit">
+                          <td class="line" data-tooltip>122</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const SUT &#x3D; new UserService(userModelStub)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__123" class="hit">
+                          <td class="line" data-tooltip>123</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const foundUser &#x3D; await SUT.list(raw)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__124" class="hit">
+                          <td class="line" data-tooltip>124</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(userModelStub.findAll.calledWith({ raw })).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__125" class="hit">
+                          <td class="line" data-tooltip>125</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(foundUser).to.equal([mockUserToGet])</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__126" class="hit">
+                          <td class="line" data-tooltip>126</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__127" class="hit">
+                          <td class="line" data-tooltip>127</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__128" class="hit">
+                          <td class="line" data-tooltip>128</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">  describe(&#x27;update&#x27;, function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__129" class="hit">
+                          <td class="line" data-tooltip>129</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    it(&#x27;Should call update with an ID and a payload to update&#x27;, async function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__130" class="hit">
+                          <td class="line" data-tooltip>130</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      const userModelStub &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__131" class="hit">
+                          <td class="line" data-tooltip>131</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        findOne: sinon.stub()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__132" class="hit">
+                          <td class="line" data-tooltip>132</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__133" class="hit">
+                          <td class="line" data-tooltip>133</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const id &#x3D; 1</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__134" class="hit">
+                          <td class="line" data-tooltip>134</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockUserToGet &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__135" class="hit">
+                          <td class="line" data-tooltip>135</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        id,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__136" class="hit">
+                          <td class="line" data-tooltip>136</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        name: &#x27;Name&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__137" class="hit">
+                          <td class="line" data-tooltip>137</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        email: &#x27;e@mail.com&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__138" class="hit">
+                          <td class="line" data-tooltip>138</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        password: &#x27;asd&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__139" class="hit">
+                          <td class="line" data-tooltip>139</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        update: sinon.stub(),</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__140" class="hit">
+                          <td class="line" data-tooltip>140</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        toJSON: sinon.stub()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__141" class="hit">
+                          <td class="line" data-tooltip>141</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__142" class="hit">
+                          <td class="line" data-tooltip>142</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockPayloadToUpdate &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__143" class="hit">
+                          <td class="line" data-tooltip>143</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        name: &#x27;New Name&#x27;,</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__144" class="hit">
+                          <td class="line" data-tooltip>144</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        password: &#x27;qwe&#x27;</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__145" class="hit">
+                          <td class="line" data-tooltip>145</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__146" class="hit">
+                          <td class="line" data-tooltip>146</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockQueryObject &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__147" class="hit">
+                          <td class="line" data-tooltip>147</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        id</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__148" class="hit">
+                          <td class="line" data-tooltip>148</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__149" class="hit">
+                          <td class="line" data-tooltip>149</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const raw &#x3D; false</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__150" class="hit">
+                          <td class="line" data-tooltip>150</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      userModelStub.findOne.returns(mockUserToGet)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__151" class="hit">
+                          <td class="line" data-tooltip>151</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      mockUserToGet.update.returns(mockUserToGet)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__152" class="hit">
+                          <td class="line" data-tooltip>152</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      mockUserToGet.toJSON.returns(mockUserToGet)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__153" class="hit">
+                          <td class="line" data-tooltip>153</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const SUT &#x3D; new UserService(userModelStub)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__154" class="hit">
+                          <td class="line" data-tooltip>154</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const updatedUser &#x3D; await SUT.update(id, mockPayloadToUpdate)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__155" class="hit">
+                          <td class="line" data-tooltip>155</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(userModelStub.findOne.calledWith({ where: mockQueryObject, raw })).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__156" class="hit">
+                          <td class="line" data-tooltip>156</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(mockUserToGet.update.calledWith(mockPayloadToUpdate)).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__157" class="hit">
+                          <td class="line" data-tooltip>157</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(updatedUser).to.equal(mockUserToGet)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__158" class="hit">
+                          <td class="line" data-tooltip>158</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__159" class="hit">
+                          <td class="line" data-tooltip>159</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__160" class="hit">
+                          <td class="line" data-tooltip>160</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">  describe(&#x27;delete&#x27;, function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__161" class="hit">
+                          <td class="line" data-tooltip>161</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    it(&#x27;should call destroy in the user model using a query&#x27;, async function(){</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__162" class="hit">
+                          <td class="line" data-tooltip>162</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      const userModelStub &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__163" class="hit">
+                          <td class="line" data-tooltip>163</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        destroy: sinon.stub()</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__164" class="hit">
+                          <td class="line" data-tooltip>164</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__165" class="hit">
+                          <td class="line" data-tooltip>165</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockResult &#x3D; 1</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__166" class="hit">
+                          <td class="line" data-tooltip>166</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const mockQuery &#x3D; {</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__167" class="hit">
+                          <td class="line" data-tooltip>167</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">        id: 1</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__168" class="hit">
+                          <td class="line" data-tooltip>168</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">      }</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__169" class="hit">
+                          <td class="line" data-tooltip>169</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      userModelStub.destroy.returns(mockResult)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__170" class="hit">
+                          <td class="line" data-tooltip>170</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const SUT &#x3D; new UserService(userModelStub)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__171" class="hit">
+                          <td class="line" data-tooltip>171</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      const result &#x3D; await SUT.delete(mockQuery)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__172" class="hit">
+                          <td class="line" data-tooltip>172</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(userModelStub.destroy.calledWith({ where: mockQuery })).to.equal(true)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__173" class="hit">
+                          <td class="line" data-tooltip>173</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip>1</td>
+                          <td class="source">      expect(result).to.equal(mockResult)</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__174" class="hit">
+                          <td class="line" data-tooltip>174</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">    })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__175" class="hit">
+                          <td class="line" data-tooltip>175</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">  })</td>
+                          
+                        </tr>            <tr id="src/api/users/user.service.spec.js__176" class="hit">
+                          <td class="line" data-tooltip>176</td>
+                          <td class="lint empty"></td>
+                          <td class="hits" data-tooltip></td>
+                          <td class="source">})</td>
+                          
+                        </tr>        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>    <div id="linting">
+        <h1>Linting Report</h1>
+            <span>Nothing to show here, linting is disabled.</span>
+    </div>  </body>
+</html>

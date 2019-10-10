@@ -1,3 +1,4 @@
+const Joi = require('joi')
 
 const healthRoute = {
   name: 'healthRoute',
@@ -8,6 +9,16 @@ const healthRoute = {
       path: '/',
       handler: function() {
         return 'Hello World'
+      },
+      config: {
+        tags: ['api'],
+        response: {
+          modify: true,
+          options: {
+            stripUnknown: true,
+          },
+          schema: Joi.string().required()
+        },
       }
     })
   }
