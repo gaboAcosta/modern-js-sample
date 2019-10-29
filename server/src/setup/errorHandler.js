@@ -6,7 +6,7 @@ module.exports = {
     const preResponse = function (request, h) {
       const response = request.response
       if (!response.isBoom) {
-        return h.continue()
+        return h.continue;
       }
 
       const { statusCode } = response.output
@@ -24,7 +24,7 @@ module.exports = {
       server.log(['error'], '=== HANDLING ERROR RESPONSE ===')
       server.log(['error'], parsedError)
 
-      return response
+      return h.continue;
     }
 
     server.ext('onPreResponse', preResponse)

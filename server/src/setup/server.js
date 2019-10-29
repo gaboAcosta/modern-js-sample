@@ -17,7 +17,9 @@ async function loadPlugins(server) {
       plugin: require('hapi-pino'),
       options: {
         level: 'info',
-        logEvents: false
+        logEvents: false,
+        prettyPrint: true,
+        mergeHapiLogData: true
       }
     },
     Inert,

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
+    "dev": "nodemon --inspect=0.0.0.0 index.js",
     "db:create": "node ./src/db/init.js",
     "db:migrate": "sequelize db:migrate",
     "docker:volumes": "docker volume create --name=postgresDevelopment",

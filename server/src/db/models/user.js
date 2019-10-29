@@ -1,6 +1,6 @@
 
 const Sequelize = require('sequelize')
-const bcrypt = require('bcrypt')
+const { encrypt, compare } = require('../../common/password')
 
 module.exports = (sequelize, DataTypes) => {
   const modelName = 'User'
@@ -15,12 +15,15 @@ module.exports = (sequelize, DataTypes) => {
     },
     password: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      set (value) {
+        this.setDataValue('password', encrypt(value))
+      }
     }
   }, {});
 
   User.validatePassword = function(password) {
-    return bcrypt.compare(password, this.password)
+    return compare(password, this.password)
   }
   User.associate = function(){}
 
