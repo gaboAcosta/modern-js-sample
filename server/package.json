@@ -32,7 +32,6 @@
     "hapi-pino": "^6.1.0",
     "hapi-swagger": "^10.1.2",
     "joi": "^14.3.1",
-    "mongoose": "^5.7.3",
     "pg": "^7.12.1",
     "pg-hstore": "^2.3.3",
     "sequelize": "5.18.4",
