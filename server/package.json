@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "db:create": "node ./src/db/init.js",
     "db:migrate": "sequelize db:migrate",
+    "docker:volumes": "docker volume create --name=postgresDevelopment",
     "test:functional": "NODE_ENV=test lab -v -P 'spec' test",
     "test:functional:watch": "nodemon --exec \"npm run test:functional\"",
     "test:unit": "lab -v -c -P 'spec' src",

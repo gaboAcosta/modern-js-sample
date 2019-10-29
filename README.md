@@ -18,12 +18,12 @@ Step 1) Clone the repo
 
 Step 2) Run `docker-compose build`
 
-Step 3) Run the db container `docker-compose up postgres`
+Step 3) Run the db container in detached mode`docker-compose up -d postgres`
 
-Step 4) Using Datagrip or other app, create two db on the server, development and test
+Step 4) Run `docker-compose run app run db:create`
 
-Step 5) Turn off the db container and turn everything up `docker-compose up`
+Step 5) Run the db migrations `docker-compose run app run db:migrate`
 
-Step 6) Run the migrations for your environment `docker-compose run app run db:migrate`
+Step 6) Start the system `docker-compose up`
 
-Step 7) Turn on the system `docker-compose up`
+After this initial steps, only step number 6 is necessary to work on development mode.
