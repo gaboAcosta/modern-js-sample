@@ -13,7 +13,7 @@ const userUpdateRoute = {
     const service = factory.getService()
     server.route({
       method: 'PUT',
-      path: '/v1/users/{id}',
+      path: '/api/v1/users/{id}',
       handler: async (request) => {
         const {
           params: { id },

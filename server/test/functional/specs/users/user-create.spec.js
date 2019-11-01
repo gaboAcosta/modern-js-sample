@@ -30,7 +30,7 @@ describe('Users Tests', () => {
       }
       const res = await server.inject({
         method: 'POST',
-        url: '/v1/users',
+        url: '/api/v1/users',
         payload: userToCreate
       });
       const users  = await models.User.findAll({ raw: true })

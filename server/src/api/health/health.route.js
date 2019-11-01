@@ -6,7 +6,7 @@ const healthRoute = {
   register: async (server, options) => {
     server.route({
       method: 'GET',
-      path: '/',
+      path: '/api/v1/health',
       handler: function() {
         return 'Hello World'
       },

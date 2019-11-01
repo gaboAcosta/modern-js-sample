@@ -13,7 +13,7 @@ const userGetRoute = {
     const service = factory.getService()
     server.route({
       method: 'GET',
-      path: '/v1/users/{id}',
+      path: '/api/v1/users/{id}',
       handler: async (request) => {
         const {
           id

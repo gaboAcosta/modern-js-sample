@@ -1,3 +1,4 @@
+const path = require('path')
 const Hapi = require('@hapi/hapi')
 const Inert = require('@hapi/inert')
 const Vision = require('@hapi/vision')
@@ -27,9 +28,16 @@ async function loadPlugins(server) {
     HapiSwaggerPlugin,
     require('./app.config'),
     require('./db'),
-    require('./errorHandler')
+    require('./errorHandler'),
+    require('./client.route')
   ]
   await server.register(appPlugins.concat(routes))
+  server.views({
+    engines: {
+      html: require('handlebars')
+    },
+    path: path.join(__dirname, '..', 'views')
+  });
 }
 
 exports.isInit = false

@@ -12,7 +12,7 @@ const userList = {
     const service = factory.getService()
     server.route({
       method: 'GET',
-      path: '/v1/users',
+      path: '/api/v1/users',
       handler: async (request) => {
         return await service.list()
       },

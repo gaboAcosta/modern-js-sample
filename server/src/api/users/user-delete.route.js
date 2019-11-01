@@ -13,7 +13,7 @@ const userDeleteRoute = {
     const service = factory.getService()
     server.route({
       method: 'DELETE',
-      path: '/v1/users/{id}',
+      path: '/api/v1/users/{id}',
       handler: async (request) => {
         const {
           id

@@ -12,7 +12,7 @@ const userCreateRoute = {
     const service = factory.getService()
     server.route({
       method: 'POST',
-      path: '/v1/users',
+      path: '/api/v1/users',
       handler: async (request) => {
         const {
           name,

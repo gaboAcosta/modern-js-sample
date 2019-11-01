@@ -16,7 +16,7 @@ describe('GETs /', () => {
   it('responds with 200', async () => {
     const res = await server.inject({
       method: 'get',
-      url: '/'
+      url: '/api/v1/health'
     });
     expect(res.statusCode).to.equal(200);
   });
