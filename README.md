@@ -14,6 +14,16 @@ Prerequisites: Docker Installed and working
 
 Steps to get the app up and running:
 
+First, start the client
+
+Step 1) cd client
+
+Step 2) npm install
+
+Step 3) npm run start
+
+To start the server:
+
 Step 1) Clone the repo
 
 Step 2) Run `docker-compose build`
