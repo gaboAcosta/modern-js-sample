@@ -7,12 +7,6 @@ export default class UsersList {
     this.users = []
   }
   async fetchUsers () {
-    console.log('Fetching users!')
-    try {
-      this.users = await APIClient.getUsers()
-      console.log('Successfully fetched users', this.users)
-    } catch {
-      console.log('Error fetching users!')
-    }
+    this.users = await APIClient.getUsers()
   }
 }

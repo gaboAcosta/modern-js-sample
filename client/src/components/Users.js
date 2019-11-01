@@ -12,7 +12,6 @@ import styles from './Users.css'
 export default class Users extends React.Component {
   store = new UsersListStore()
   componentDidMount() {
-    console.log('Component mounted, props are:', JSON.stringify(this.props))
     this.fetchUsers()
   }
 
@@ -22,8 +21,6 @@ export default class Users extends React.Component {
 
   render() {
     const users = this.store.users
-    console.log('loaded styles', styles)
-    console.log('Rendering users', users)
     return (
       <Container className="p-3">
         <Table striped bordered hover>
